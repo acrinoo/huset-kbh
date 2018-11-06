@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huset KBH webapp
+  </title>
+
+  <style>
+    .data-billede {
+      width: 100%;
+      height: auto;
+    }
+
+
+
+    .foot-wrap {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: lightgrey;
+      color: white;
+      height: 100px;
+
+    }
+
+    .H {
+      height: 50%;
+      width: 50%;
+      padding-left: 220px;
+
+    }
+
+    .frivillig {
+      float: left;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      z-index: 1;
+      width: 100%;
+      background-color: #f1f1f1;
+    }
+
+    .progress-container {
+      width: 100%;
+      height: 8px;
+      background: #ccc;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #4caf50;
+      width: 0%;
+    }
+
+
+
+    }
+  </style>
+
+  <header>
+    <section class="overst">
+
+      <div class="nyhedsbrev">
+        <a href="#">
+          <button type="button">Nyhedsbrev</button>
+             <div class="frivillig">
+        <a href="#">
+          <button type="button">Bliv frivillig</button>
+          
+        </a>
+      </div>
+    </section>
+    <img src="Happ.png" alt="H" class="H">
+
+  </header>
+
+
+  <body>
+    <div class="progress-container">
+      <div class="progress-bar" id="myBar"></div>
+    </div>
+
+
+    <!-- MENU MODAL -->
+    <section id="modal">
+
+      <button class="luk">Luk</button>
+      <div id="modal-content">
+        <h2 class="modal-titel"></h2>
+        <img class="modal-billede" src="" alt=""><br>
+        <div id="modal-tekst">
+          <p class="modal-langbeskrivelse"></p><br>
+          <br>
+          <p class="modal-kortbeskrivelse"></p>
+        </div>
+      </div>
+    </section>
+
+
+    <!--TEMPLATE-->
+    <section class="container"></section>
+
+    <template id="event-template">
+      <article class="event-article">
+       <h2 class="data-titel"></h2>
+          <p class="data-dato"></p>
+       <p class="data-tid"></p>
+       <p class="data-sted"></p>
+       <p class="data-pris"></p>
+       <p class="eventtype"></p>
+       <p class="kort-beskrivelse"></p>
+<div class="lang-beskrivelse"></div>
+        <img class="data-billede" src="" alt="">
+        <a href="" class="kob"><p>Køb billet</p></a>
+       </article>
+    </template>
+
+
+    <footer>
+      <!--adresse-->
+      <section class="foot-wrap">
+        <div class="adresse">
+
+          <p>Adresse
+            <p>
+              <p>Rådhusstræde 13 <br> 1466 København K</p>
+              <a href="https://goo.gl/maps/EfVXkMvWe4L2">Find os her</a>
+        </div>
+        <!--kontakt-->
+        <div class="kontakt">
+
+
+          <p>Kontakt
+            <p>
+              <a href="tel:+45 21512151">
+  Ring til Huset
+</a>
+              <a href=mailto:<info@huset-kbh.dk>
+                <p> Mail: info@huset-kbh.dk</p>
+        </div>
+        <!--åbningstider-->
+        <div class="åbningstider">
+          <p>Åbningstider
+            <p>
+              <p>Søndag-tordag 12:00-00:00 <br> Fredag-lørdag 12:00-02:00</p>
+        </div>
+
+
+        <!--some-->
+        <!--andre logoer-->
+      </section>
+    </footer>
+
+
+
+
+    <!--Script-->
+    <script>
+      // DOM loaded
+      document.addEventListener("DOMContentLoaded", getJSON);
+      let endPoint = "events"; //sidste skråstreg i json-fil-linket
+      let eventType = "events";
+      let events = [];
+      let eventTemplate = document.querySelector("#event-template");
+      let eventContainer = document.querySelector(".container");
+      // Hent json
+      async function getJSON() {
+        let jsonData = await fetch("http://digcon.dk/kea/2SEM/Husetkbh/wordpress/wp-json/wp/v2/" + endPoint);
+        events = await jsonData.json();
+        console.log(events);
+        visEvent();
+      }
+      // Viser og kloner
+      function visEvent() {
+        events.forEach(event => {
+          console.log(eventType, event.acf.eventtype);
+          if (eventType == event.acf.eventtype || eventType == "events") {
+            let klon = eventTemplate.cloneNode(true).content;
+            klon.querySelector(".data-titel").textContent = event.title.rendered;
+            //                    klon.querySelector(".data-dato").textContent = event.acf.dato;
+            klon.querySelector(".data-tid").textContent = "Dato: " + event.acf.tid;
+            klon.querySelector(".data-sted").textContent = event.acf.sted;
+            //                    klon.querySelector(".data-pris").textContent = event.acf.pris;
+            klon.querySelector(".kort-beskrivelse").textContent = event.acf.beskrivelse;
+            //                    klon.querySelector(".lang-beskrivelse").innerHTML = event.content.rendered;
+            klon.querySelector("img").src = event.acf.billede;
+            klon.querySelector("a").src = "Køb billet " + event.acf.kob;
+            klon.querySelector("img").addEventListener("click", () => {
+              visModal(event);
+            });
+            eventContainer.appendChild(klon);
+          }
+        });
+      }
+      // filtrering
+      let buttons = document.querySelectorAll(".eventtype");
+      buttons.forEach(button => {
+        button.addEventListener("click", filtrering);
+      });
+
+      function filtrering(e) {
+        console.log(e.target.getAttribute("data-event"));
+        eventType = e.target.getAttribute("data-event");
+        //events = [];
+        eventContainer.textContent = "";
+        visEvent();
+      }
+      // NAV
+      function myFunction() {
+        var x = document.getElementById("nav");
+        if (x.style.display === "block") {
+          x.style.display = "none";
+        } else {
+          x.style.display = "block";
+        }
+      }
+      // SCRIPT MODAL
+      function visModal(eventet) {
+        let modal = document.querySelector("#modal");
+        modal.classList.add("vis");
+        modal.querySelector(".modal-titel").textContent = eventet.title.rendered;
+        modal.querySelector(".modal-langbeskrivelse").innerHTML = eventet.content.rendered;
+        modal.querySelector(".modal-kortbeskrivelse").textContent = eventet.acf.beskrivelse;
+        modal.querySelector(".modal-billede").src = eventet.acf.billede;
+        modal.querySelector(".modal-billede").alt = "Foto af" + eventet.title.rendered;
+        modal.querySelector(".luk").addEventListener("click", skjulModal);
+      }
+
+      function skjulModal() {
+        modal.classList.remove("vis");
+      }
+    </script>
+  </body>
+
+</html>
